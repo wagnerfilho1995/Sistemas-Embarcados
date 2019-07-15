@@ -13,14 +13,14 @@ output_t led_zero, led_one, led_two, led_three; // Leds
 
 /* Comando Shell press -> parametros: (Struct do tipo shell, argc é o numero de argumentos do comando, argv é um array de tring
    contendo os argumentos em si)*/
-static int cmd_app_skol(const struct shell *shell, size_t argc, char **argv) {
+static int cmd_run_skol(const struct shell *shell, size_t argc, char **argv) {
         
         // 0 - Led aceso
         // 1 - Led apagado
         int state_led = 1;
-        int loops = 3;
+        int loops = 2;
 
-        // Reproduzir a ação 3 vezes 
+        // Reproduzir a ação 2 vezes 
         for(int i = 0; i < loops; i++){
             state_led = 1;
             // Inicialmente todos os Leds apagados
@@ -58,7 +58,7 @@ static int cmd_app_skol(const struct shell *shell, size_t argc, char **argv) {
 
 /* Comando Shell press -> parametros: (Struct do tipo shell, argc é o numero de argumentos do comando, argv é um array de tring
    contendo os argumentos em si)*/
-static int cmd_app_press(const struct shell *shell, size_t argc, char **argv) {
+static int cmd_run_press(const struct shell *shell, size_t argc, char **argv) {
 
         // Acessar: Array de Strings -> String na posição argc+1
         char led = *(*(argv+1));
@@ -85,15 +85,15 @@ static int cmd_app_press(const struct shell *shell, size_t argc, char **argv) {
         return 0;
 }
 
-// Colocando os comandos criados como subcomandos do app
-SHELL_STATIC_SUBCMD_SET_CREATE(sub_app,
-    SHELL_CMD_ARG(skol, NULL, "Skol led state command.", cmd_app_skol, 1, NULL),
-    SHELL_CMD_ARG(press, NULL, "Press led state command.", cmd_app_press, 2, NULL),
+// Colocando os comandos criados como subcomandos do run
+SHELL_STATIC_SUBCMD_SET_CREATE(sub_run,
+    SHELL_CMD_ARG(skol, NULL, "Comando Skol.", cmd_run_skol, 1, NULL),
+    SHELL_CMD_ARG(press, NULL, "Comando Press.", cmd_run_press, 2, NULL),
     SHELL_SUBCMD_SET_END
 );
 
-// Setando o comando app no root
-SHELL_CMD_REGISTER(app, &sub_app, "App commands.", NULL);
+// Setando o comando run no root
+SHELL_CMD_REGISTER(run, &sub_run, "Comandos Run.", NULL);
 
 // Função para botão pressionado
 void button_pressed(struct device *btn, struct gpio_callback *cb, u32_t pins){
@@ -149,13 +149,15 @@ void main(void) {
     led(&led_two, led_two_PIN, led_two_PORT, state);
     led(&led_three, led_three_PIN, led_three_PORT, state);
 
+    printk("\n");
+
     // Criando e definindo botoes
     button(&btn0, SW0_PIN, SW0_PORT);
     button(&btn1, SW1_PIN, SW1_PORT);
     button(&btn2, SW2_PIN, SW2_PORT);
     button(&btn3, SW3_PIN, SW3_PORT);
 
-    printk("Aguardando ação ...\n");
+    printk("Aguardando comandos ...\n");
     while(1) {
         u32_t val = 0U;
 
