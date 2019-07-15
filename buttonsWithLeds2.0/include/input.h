@@ -11,6 +11,7 @@
 #ifndef _INPUT_H_
 #define _INPUT_H_
 
+#include <device.h>
 #include <gpio.h>
 
 struct input {

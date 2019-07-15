@@ -12,6 +12,8 @@
 #define _OUTPUT_H_
 
 #include <device.h>
+#include <gpio.h>
+
 
 struct output {
     struct device *device;
@@ -51,5 +53,14 @@ int output_configure(output_t *out, u32_t pin, int flags);
  * @return 
  */
 int output_set(output_t *out, u8_t value);
+
+/** 
+ * Essa função tem como objetivo inverter o estado do pino de
+ * saída.
+ * @param out 
+ *
+ * @return 
+ */
+int output_pressed(output_t *out);
 
 #endif
