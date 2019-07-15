@@ -7,6 +7,10 @@ int output_open(output_t *out, char *dev_label) {
     out->dev_label = dev_label;
     out->device = device_get_binding(out->dev_label);
     //printk("output_open done\n");
+     if(!out->device){
+        printk("Função: output_open (arquivo: ouput.c).\nFalha na atribução do out->device.\n");
+        return 1;
+    }
     return 0;
 }
 

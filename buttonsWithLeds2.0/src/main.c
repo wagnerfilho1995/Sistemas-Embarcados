@@ -8,11 +8,11 @@
 #include "input.h"
 #include "output.h"
 
-// Structs globais de saida
-// Leds
-output_t led_zero, led_one, led_two, led_three;
+// Structs globais de saida do tipo output_t
+output_t led_zero, led_one, led_two, led_three; // Leds
 
-// Comando Shell skol
+/* Comando Shell press -> parametros: (Struct do tipo shell, argc é o numero de argumentos do comando, argv é um array de tring
+   contendo os argumentos em si)*/
 static int cmd_app_skol(const struct shell *shell, size_t argc, char **argv) {
         
         // 0 - Led aceso
@@ -20,8 +20,8 @@ static int cmd_app_skol(const struct shell *shell, size_t argc, char **argv) {
         int state_led = 1;
         int loops = 3;
 
+        // Reproduzir a ação 3 vezes 
         for(int i = 0; i < loops; i++){
-            
             state_led = 1;
             // Inicialmente todos os Leds apagados
             output_set(&led_zero, state_led);
@@ -40,25 +40,27 @@ static int cmd_app_skol(const struct shell *shell, size_t argc, char **argv) {
             output_set(&led_two, state_led);
             k_sleep(SLEEP_TIME);
 
-            // Apague de volta (Backtrack)
+            // Apague voltando "Backtrack"
             state_led = 1;
             output_set(&led_two, state_led);
-            k_sleep(SLEEP_TIME);
+            k_sleep(SLEEP_TIME-200);
             output_set(&led_three, state_led);
-            k_sleep(SLEEP_TIME);
+            k_sleep(SLEEP_TIME)-200;
             output_set(&led_one, state_led);
-            k_sleep(SLEEP_TIME);
+            k_sleep(SLEEP_TIME-200);
             output_set(&led_zero, state_led);
-            k_sleep(SLEEP_TIME);
+            k_sleep(SLEEP_TIME-200);
         }
-
+        // Printando no terminal do shell que a ação foi executada
         shell_print(shell, "Os leds que descem redondo!");
         return 0;
 }
 
-// Comando Shell press
+/* Comando Shell press -> parametros: (Struct do tipo shell, argc é o numero de argumentos do comando, argv é um array de tring
+   contendo os argumentos em si)*/
 static int cmd_app_press(const struct shell *shell, size_t argc, char **argv) {
 
+        // Acessar: Array de Strings -> String na posição argc+1
         char led = *(*(argv+1));
 
         switch (led) {
@@ -78,19 +80,19 @@ static int cmd_app_press(const struct shell *shell, size_t argc, char **argv) {
             shell_print(shell, "Botao invalido");
             return -1;
         }
-      
+        // Printando no terminal do shell que a ação foi executada
         shell_print(shell, "Led %c pressionado.", led);
         return 0;
 }
 
-// Subcommands array for command "app"
+// Colocando os comandos criados como subcomandos do app
 SHELL_STATIC_SUBCMD_SET_CREATE(sub_app,
     SHELL_CMD_ARG(skol, NULL, "Skol led state command.", cmd_app_skol, 1, NULL),
     SHELL_CMD_ARG(press, NULL, "Press led state command.", cmd_app_press, 2, NULL),
     SHELL_SUBCMD_SET_END
 );
 
-// Root command "app"
+// Setando o comando app no root
 SHELL_CMD_REGISTER(app, &sub_app, "App commands.", NULL);
 
 // Função para botão pressionado
@@ -112,17 +114,25 @@ void button_pressed(struct device *btn, struct gpio_callback *cb, u32_t pins){
 
 // Inicializador Led
 void led(output_t *led, u32_t pin, char *port, u8_t state){
-    output_open(led, port);
+    int e = output_open(led, port);
+    if(e){
+        printk("Alerta: Led para o PIN%d não inicializado.\n", pin);
+        return;
+    }
     output_configure(led, pin, GPIO_DIR_OUT);
     output_set(led, state);
-    //printk("Led no pino %d inicializado\n", pin);
+    printk("Led em PIN%d inicializado.\n", pin);
 }
 
 // Inicializador Botão
 void button(input_t *button, u32_t pin, char *port){
-    input_open(button, port);
+    int e = input_open(button, port);
+    if(e){
+        printk("Alerta: Botao para o PIN%d não inicializado.\n", pin);
+        return;
+    }
     input_configure(button, pin, GPIO_DIR_IN | SW_GPIO_FLAGS, button_pressed);
-    //printk("Botao no pino %d inicializado\n", pin);
+    printk("Botao em PIN%d inicializado.\n", pin);
 }
 
 void main(void) {
@@ -145,6 +155,7 @@ void main(void) {
     button(&btn2, SW2_PIN, SW2_PORT);
     button(&btn3, SW3_PIN, SW3_PORT);
 
+    printk("Aguardando ação ...\n");
     while(1) {
         u32_t val = 0U;
 
